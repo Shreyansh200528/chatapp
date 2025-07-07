@@ -2,18 +2,10 @@ import React, { useContext, useEffect, useState } from 'react';
 import assets from '../assets/assets';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
-import { ChatContext } from '../../context/ChatContext';
-import axios from 'axios';
-import toast from 'react-hot-toast';
 
-// 🔒 fallback dummy user (in case not fetched from server)
-const DUMMY_USER = {
-  _id: '6867e15f3bb3b9227b61fc17',
-  email: 'dummy2@gmail.com',
-  fullName: 'dummy',
-  profilePic: '', // optionally add an image URL
-  bio: 'Hello Welcome to my chatapp, test if it is working on this bot',
-};
+import { useUserSearch } from '../hooks/useUserSearch';
+import { ChatContext } from '../../context/ChatContext';
+
 
 const Sidebar = () => {
   const {
@@ -26,83 +18,15 @@ const Sidebar = () => {
   } = useContext(ChatContext);
 
   const { logout, onlineUsers } = useContext(AuthContext);
-
-  const [input, setInput] = useState('');
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [filteredUsers, setFilteredUsers] = useState([]);
-
   const navigate = useNavigate();
 
-  // Fetch all users & ensure dummy2 is added if not present
-  useEffect(() => {
-    const ensureDummyUser = () => {
-      const alreadyIncluded = users.some((u) => u._id === DUMMY_USER._id);
-      const updated = alreadyIncluded ? users : [...users, DUMMY_USER];
-      setFilteredUsers(updated);
-    };
+  const [input, setInput] = useState('');
+  const { filteredUsers } = useUserSearch(input, users);
 
-    ensureDummyUser();
-  }, [users]);
-
-  // Search functionality
-  useEffect(() => {
-    const trimmed = input.trim().toLowerCase();
-
-    if (!trimmed) {
-      const alreadyIncluded = users.some((u) => u._id === DUMMY_USER._id);
-      const updated = alreadyIncluded ? users : [...users, DUMMY_USER];
-      setFilteredUsers(updated);
-      return;
-    }
-
-    const localMatches = [...users, DUMMY_USER].filter(
-      (user) =>
-        user.fullName.toLowerCase().includes(trimmed) ||
-        user.email?.toLowerCase() === trimmed
-    );
-
-    if (localMatches.length > 0) {
-      setFilteredUsers(localMatches);
-      return;
-    }
-
-    // Query by email (if it looks valid)
-    if (!trimmed.includes('@')) {
-      setFilteredUsers([]);
-      return;
-    }
-
-    const fetchUserByEmail = async () => {
-      try {
-        const token = localStorage.getItem('authToken');
-        const res = await axios.get(
-          `/api/users/find-by-email?email=${trimmed}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        const foundUser = res.data.user;
-        const alreadyInList = users.some((u) => u._id === foundUser._id);
-        if (!alreadyInList) {
-          setFilteredUsers([foundUser]);
-        } else {
-          setFilteredUsers(users.filter((u) => u._id === foundUser._id));
-        }
-      } catch (err) {
-        setFilteredUsers([]);
-        if (err.response?.status !== 404) {
-          toast.error('Failed to fetch user');
-        }
-      }
-    };
-
-    fetchUserByEmail();
-  }, [input, users]);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    getUsers(); // fetch users when online status changes
+    getUsers();
   }, [onlineUsers]);
 
   return (
@@ -111,6 +35,7 @@ const Sidebar = () => {
         selectedUser ? 'max-md:hidden' : ''
       }`}
     >
+      {/* Logo and Menu */}
       <div className="pb-5">
         <div className="flex justify-between items-center">
           <img src={assets.logo} alt="logo" className="max-w-40" />
@@ -147,6 +72,7 @@ const Sidebar = () => {
           </div>
         </div>
 
+        {/* Search Bar */}
         <div className="bg-[#282142] rounded-full flex items-center gap-2 py-3 px-4 mt-5">
           <img src={assets.search_icon} alt="Search" className="w-3" />
           <input
@@ -159,15 +85,16 @@ const Sidebar = () => {
         </div>
       </div>
 
+      {/* User List */}
       <div className="flex flex-col">
         {filteredUsers.length > 0 ? (
-          filteredUsers.map((user, index) => (
+          filteredUsers.map((user) => (
             <div
+              key={user._id}
               onClick={() => {
                 setSelectedUser(user);
                 setUnseenMessages((prev) => ({ ...prev, [user._id]: 0 }));
               }}
-              key={user._id || index}
               className={`relative flex items-center gap-2 p-2 pl-4 rounded cursor-pointer max-sm:text-sm ${
                 selectedUser?._id === user._id && 'bg-[#282142]/50'
               }`}
@@ -179,11 +106,9 @@ const Sidebar = () => {
               />
               <div className="flex flex-col leading-5">
                 <p>{user.fullName}</p>
-                {onlineUsers.includes(user._id) ? (
-                  <span className="text-green-400 text-xs">Online</span>
-                ) : (
-                  <span className="text-neutral-400 text-xs">Offline</span>
-                )}
+                <span className={`text-xs ${onlineUsers.includes(user._id) ? 'text-green-400' : 'text-neutral-400'}`}>
+                  {onlineUsers.includes(user._id) ? 'Online' : 'Offline'}
+                </span>
               </div>
               {unseenMessages[user._id] > 0 && (
                 <p className="absolute top-4 right-4 text-xs h-5 w-5 flex justify-center items-center rounded-full bg-violet-500/50">

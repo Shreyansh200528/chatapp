@@ -9,26 +9,53 @@ const { Promise } = mongoose;
 
 
 // Get all users except the logged in user
-export const getUsersForSidebar = async (req, res)=>{
-    try {
-        const userId = req.user._id;
-        const filteredUsers = await User.find({_id: {$ne: userId}}).select("-password");
+export const getUsersForSidebar = async (req, res) => {
+  try {
+    const userId = req.user._id;
 
-        // Count number of messages not seen
-        const unseenMessages = {}
-        const promises = filteredUsers.map(async (user)=>{
-            const messages = await Message.find({senderId: user._id, receiverId: userId, seen: false})
-            if(messages.length > 0){
-                unseenMessages[user._id] = messages.length;
-            }
-        })
-        await Promise.all(promises);
-        res.json({success: true, users: filteredUsers, unseenMessages})
-    } catch (error) {
-        console.log(error.message);
-        res.json({success: false, message: error.message})
-    }
-}
+    // Find all messages where the user is either sender or receiver
+    const messages = await Message.find({
+      $or: [
+        { senderId: userId },
+        { receiverId: userId }
+      ]
+    });
+
+    const userMap = {};
+    const unseenMessages = {};
+
+    messages.forEach((msg) => {
+      const otherUserId =
+        msg.senderId.toString() === userId.toString()
+          ? msg.receiverId.toString()
+          : msg.senderId.toString();
+
+      userMap[otherUserId] = true;
+
+      // Count unseen messages sent *to* the current user
+      if (
+        msg.receiverId.toString() === userId.toString() &&
+        !msg.seen
+      ) {
+        unseenMessages[otherUserId] = (unseenMessages[otherUserId] || 0) + 1;
+      }
+    });
+
+    const userIds = Object.keys(userMap);
+
+    const users = await User.find({ _id: { $in: userIds } }).select("-password");
+
+    res.json({
+      success: true,
+      users,
+      unseenMessages
+    });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 
 
 // Get all messages for selected user
