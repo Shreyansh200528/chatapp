@@ -5,9 +5,9 @@ import toast from 'react-hot-toast';
 const DUMMY_USER = {
   _id: '6867e15f3bb3b9227b61fc17',
   email: 'dummy2@gmail.com',
-  fullName: 'dummy',
-  profilePic: '',
-  bio: 'Hello Welcome to my chatapp, test if it is working on this bot',
+  fullName: 'Welcome bot',
+  profilePic: 'https://res.cloudinary.com/dfuq6hjru/image/upload/v1751893438/mogzbs7nlilpk8hvt1ja.jpg',
+  bio: 'Hello Welcome to my chatapp, test if it is working on this bot you can search someone you want to chat with by searching for their registered E-mail ID ',
 };
 
 export const useUserSearch = (input, users = []) => {
