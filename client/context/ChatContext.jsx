@@ -69,21 +69,6 @@ export const ChatProvider = ({ children })=>{
             }
         })
     }
-    // function to get user by email
-    const findUserByEmail = async (email) => {
-    try {
-        const { data } = await axios.get(`/api/users/find-by-email?email=${email}`);
-        if (data.success) {
-        return data.user;
-        } else {
-        toast.error(data.message);
-        return null;
-        }
-    } catch (error) {
-        toast.error(error.response?.data?.message || error.message);
-        return null;
-    }
-    };
 
     // function to unsubscribe from messages
     const unsubscribeFromMessages = ()=>{
@@ -96,7 +81,7 @@ export const ChatProvider = ({ children })=>{
     },[socket, selectedUser])
 
     const value = {
-        messages, users, selectedUser, getUsers, getMessages, sendMessage, setSelectedUser, unseenMessages, setUnseenMessages,findUserByEmail,
+        messages, users, selectedUser, getUsers, getMessages, sendMessage, setSelectedUser, unseenMessages, setUnseenMessages
     }
 
     return (
