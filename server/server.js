@@ -7,6 +7,7 @@ import userRouter from "./routes/userRoutes.js";
 import messageRouter from "./routes/messageRoutes.js";
 import { Server } from "socket.io";
 
+
 // Create Express app and HTTP server
 const app = express();
 const server = http.createServer(app)
@@ -36,24 +37,27 @@ io.on("connection", (socket)=>{
     })
 })
 
+
+
+
 // Middleware setup
-app.use(express.json({limit: "4mb"}));
+app.use(express.json({limit: "40mb"}));
 app.use(cors());
 
-
-// Routes setup
 app.use("/api/status", (req, res)=> res.send("Server is live"));
 app.use("/api/auth", userRouter);
 app.use("/api/messages", messageRouter)
 
-
 // Connect to MongoDB
 await connectDB();
 
-if(process.env.NODE_ENV !== "production"){
-    const PORT = process.env.PORT || 5000;
-    server.listen(PORT, ()=> console.log("Server is running on PORT: " + PORT));
-}
+if(process.env.NODE_ENV !=="prouction"){
 
-// Export server for Vervel
+    const PORT = process.env.PORT || 5000;
+server.listen(PORT, ()=> console.log("Server is running on PORT: " + PORT));
+
+}
+// for versel
 export default server;
+
+

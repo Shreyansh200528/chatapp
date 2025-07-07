@@ -1,7 +1,11 @@
-import Message from "../models/Message.js";
+
 import User from "../models/User.js";
 import cloudinary from "../lib/cloudinary.js"
-import { io, userSocketMap } from "../server.js";
+import Message from "../models/Message.js";
+import mongoose from 'mongoose';
+import {io,userSocketMap} from "../server.js"
+const { Promise } = mongoose;
+
 
 
 // Get all users except the logged in user
@@ -25,6 +29,7 @@ export const getUsersForSidebar = async (req, res)=>{
         res.json({success: false, message: error.message})
     }
 }
+
 
 // Get all messages for selected user
 export const getMessages = async (req, res) =>{
