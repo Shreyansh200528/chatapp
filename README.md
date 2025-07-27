@@ -24,8 +24,8 @@ A full-stack real-time chat application built with **MongoDB**, **Express.js**, 
 | Backend      | Node.js, Express.js      |
 | Real-Time    | Socket.IO                |
 | Database     | MongoDB + Mongoose       |
-| Media Upload | Multer, Cloudinary (optional) |
-| Auth         | JWT + bcrypt             |
+| Media Upload | Cloudinary               |
+| Auth         | JWT                      |
 
 ---
 
